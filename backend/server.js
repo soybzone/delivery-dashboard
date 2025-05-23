@@ -1,13 +1,4 @@
 const express = require('express');
-const multer = require('multer');
-const xlsx = require('xlsx');
-const path = require('path');
-
-const app = express();
-const port = 3001;
-
-
-const express = require('express');
 const app = express();
 const port = process.env.PORT || 3001; // <-- DO NOT change this line
 

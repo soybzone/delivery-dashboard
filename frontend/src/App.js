@@ -1,77 +1,84 @@
 import React, { useState } from 'react';
 import './App.css';
 
-// Placeholder components for now
-const ImportTab = () => <div>📁 Upload your CSV/Excel files here.</div>;
-const DashboardTab = () => <div>📊 View performance reports here.</div>;
-const HistoryTab = () => <div>🗂️ See previously uploaded files.</div>;
-
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [file, setFile] = useState(null);
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      setError('Please select a file to upload.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('https://delivery-dashboard-backend.onrender.com/upload ', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setReport(result.report);
+      } else {
+        setError('Failed to process file.');
+      }
+    } catch (err) {
+      setError('Error connecting to server.');
+    }
+
+    setLoading(false);
+  };
 
   return (
     <div className="App">
-      {/* Top Company Header */}
-      <div className="company-header">
-        <p>Buffalo Wings & Rings DXB</p>
-      </div>
+      <header className="App-header">
+        <h1>🚚 Delivery Dashboard</h1>
+        <p>Upload your CSV or Excel file below:</p>
 
-      {/* Branding / Portal Title */}
-      <header className="app-header">
-        <h1>🍽️ Restaurant Delivery Analytics</h1>
+        <input type="file" onChange={handleFileChange} accept=".csv, .xlsx, .xls" />
+        <br />
+        <button onClick={handleUpload} disabled={loading}>
+          {loading ? 'Uploading...' : 'Upload File'}
+        </button>
+
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+
+        {report && (
+          <div style={{ marginTop: '30px', textAlign: 'left' }}>
+            <h3>📊 Performance Report</h3>
+
+            <p><strong>Total Deliveries:</strong> {report.totalDeliveries}</p>
+
+            <p><strong>Success vs Failed Orders:</strong></p>
+            <ul>
+              <li style={{ color: 'green' }}>✅ Successful: {report.successCount}</li>
+              <li style={{ color: 'red' }}>❌ Failed: {report.failCount}</li>
+            </ul>
+
+            <p><strong>💰 Revenue by Provider:</strong></p>
+            <ul>
+              {Object.entries(report.revenueByProvider).map(([provider, amount], i) => (
+                <li key={i}>
+                  {provider}: AED {amount.toFixed(2)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </header>
-
-      {/* Navigation Tabs */}
-      <nav className="tab-nav">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={activeTab === 'dashboard' ? 'active' : ''}
-        >
-          Dashboard
-        </button>
-        <button
-          onClick={() => setActiveTab('import')}
-          className={activeTab === 'import' ? 'active' : ''}
-        >
-          Import Data
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={activeTab === 'history' ? 'active' : ''}
-        >
-          History
-        </button>
-      </nav>
-
-      {/* Filter Bar */}
-      <div className="filter-bar">
-        <select>
-          <option>Platform: All</option>
-          <option>Talabat</option>
-          <option>Careem</option>
-          <option>Noon Food</option>
-        </select>
-
-        <select>
-          <option>Status: All</option>
-          <option>Delivered</option>
-          <option>Failed</option>
-        </select>
-
-        <input type="text" placeholder="Select Date Range..." readOnly />
-      </div>
-
-      {/* Main Content */}
-      <main className="app-main">
-        {activeTab === 'import' && <ImportTab />}
-        {activeTab === 'dashboard' && <DashboardTab />}
-        {activeTab === 'history' && <HistoryTab />}
-      </main>
-
-      {/* Footer */}
-      <footer className="app-footer">
-        <p>© 2025 Restaurant Delivery Analytics Portal</p>
-      </footer>
     </div>
   );
 }

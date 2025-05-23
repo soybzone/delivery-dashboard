@@ -6,6 +6,19 @@ const path = require('path');
 const app = express();
 const port = 3001;
 
+
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3001; // <-- DO NOT change this line
+
+app.get('/', (req, res) => {
+  res.send('Backend is running!');
+});
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`);
+});
+
 // Setup file upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

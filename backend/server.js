@@ -1,14 +1,11 @@
 const express = require('express');
+const multer = require('multer');   // ✅ Added: Required for file uploads
+const xlsx = require('xlsx');       // ✅ Already here
+const path = require('path');       // ✅ Already here
+const fs = require('fs');           // ✅ Already here
+
 const app = express();
-const port = process.env.PORT || 3001; // <-- DO NOT change this line
-
-app.get('/', (req, res) => {
-  res.send('Backend is running!');
-});
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
-});
+const port = process.env.PORT || 3001;
 
 // Setup file upload
 const storage = multer.diskStorage({
@@ -23,11 +20,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Make sure uploads folder exists
-const fs = require('fs');
 const dir = './uploads';
 if (!fs.existsSync(dir)) {
   fs.mkdirSync(dir);
 }
+
+app.get('/', (req, res) => {
+  res.send('Backend is running!');
+});
 
 // Route to upload and process file
 app.post('/upload', upload.single('file'), (req, res) => {
@@ -80,4 +80,8 @@ app.post('/upload', upload.single('file'), (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error reading or processing file' });
   }
+});
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`);
 });
